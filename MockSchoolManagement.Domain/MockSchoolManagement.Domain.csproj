@@ -1,0 +1,9 @@
+<!--专注于维护业务规则（编写业务代码和其他处理流程时，尽量在纯粹的内存环境中进行考虑，更利于引入设计模式。不会被底层存储细节打断思路）-->
+<!--领域层(Domain)，包括业务对象和业务规则，这是应用程序的核心层，用于存放领域实体及重要逻辑的实现-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+</Project>

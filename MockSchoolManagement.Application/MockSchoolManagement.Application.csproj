@@ -1,0 +1,10 @@
+<!--针对用户场景、用例设计应用层服务，隔离底层细节，类似于ViewModels-->
+<!--应用层(Application)，是展现层和领域层能够实现交互的中间者，协调业务对象去执行特定的应用任务，可以理解复杂业务逻辑直接的功能拼接-->
+
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,33 @@
+
+<!--多页MVC，WEBAPI-->
+<!--展现层(Presentation)，向用户提供一个接口，使用应用层和用户进行交互。-->
+
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <!--此元素指定如何托管ASP.NET Core应用程序，它表示程序应该托管InProcess（IIS Express）还是OutOfProcess（Kestrel）-->
+    <!--从性能的角度看进程内托管相对于outofprocess托管提供了更高的请求吞吐量-->
+    <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Migrations\20201026150055_AddPhotoPathToStudent.cs" />
+    <Compile Remove="Migrations\20201026150055_AddPhotoPathToStudent.Designer.cs" />
+    <Compile Remove="Migrations\20201026153936_Migration_Three.cs" />
+    <Compile Remove="Migrations\20201026153936_Migration_Three.Designer.cs" />
+    <Compile Remove="Migrations\20201026154952_one.cs" />
+    <Compile Remove="Migrations\20201026154952_one.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.4" />
+    <PackageReference Include="NLog.Web.AspNetCore" Version="4.9.0" />
+  </ItemGroup>
+
+</Project>

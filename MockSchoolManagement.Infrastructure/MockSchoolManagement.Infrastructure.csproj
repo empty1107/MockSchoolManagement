@@ -1,0 +1,9 @@
+<!--负责数据查询和持久化-->
+<!--基础设施层(Infrastructure)，提供通用技术来支持更高的层。比如，基础设施层的仓储（Repository）可通过ORM来实现数据库交互，或者提供发送邮件的支持-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+</Project>
