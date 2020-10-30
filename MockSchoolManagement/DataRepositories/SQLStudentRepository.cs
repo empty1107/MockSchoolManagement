@@ -11,12 +11,12 @@ namespace MockSchoolManagement.DataRepositories
     public class SQLStudentRepository : IStudentRepository
     {
         private readonly AppDbContext _context;
-        //private readonly ILogger<SQLStudentRepository> logger;
+        private readonly ILogger<SQLStudentRepository> logger;
 
-        public SQLStudentRepository(AppDbContext context)
+        public SQLStudentRepository(AppDbContext context, ILogger<SQLStudentRepository> logger)
         {
             this._context = context;
-            //this.logger = logger;
+            this.logger = logger;
         }
         public Student Delete(int id)
         {
@@ -31,12 +31,12 @@ namespace MockSchoolManagement.DataRepositories
 
         public IEnumerable<Student> GetAllStudents()
         {
-            //logger.LogTrace("学生信息Trace(跟踪)Log");
-            //logger.LogDebug("学生信息Debug(调试)Log");
-            //logger.LogInformation("学生信息 信息(Information)Log");
-            //logger.LogWarning("学生信息 警告(Warning)Log");
-            //logger.LogError("学生信息 错误(Error)Log");
-            //logger.LogCritical("学生信息 严重(Critical)Log");
+            logger.LogTrace("学生信息Trace(跟踪)Log");
+            logger.LogDebug("学生信息Debug(调试)Log");
+            logger.LogInformation("学生信息 信息(Information)Log");
+            logger.LogWarning("学生信息 警告(Warning)Log");
+            logger.LogError("学生信息 错误(Error)Log");
+            logger.LogCritical("学生信息 严重(Critical)Log");
 
             return _context.Students;
         }
