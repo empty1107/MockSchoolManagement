@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using MockSchoolManagement.DataRepositories;
 using MockSchoolManagement.Models;
 using MockSchoolManagement.ViewModels;
@@ -16,11 +17,13 @@ namespace MockSchoolManagement.Controllers
     {
         private readonly IStudentRepository _studentRepository;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly ILogger<HomeController> logger;
 
-        public HomeController(IStudentRepository studentRepository, IWebHostEnvironment webHostEnvironment)
+        public HomeController(IStudentRepository studentRepository, IWebHostEnvironment webHostEnvironment, ILogger<HomeController> logger)
         {
             this._studentRepository = studentRepository;
             this._webHostEnvironment = webHostEnvironment;
+            this.logger = logger;
         }
 
         public ViewResult Index()
@@ -33,7 +36,13 @@ namespace MockSchoolManagement.Controllers
 
         public ViewResult Details(int id)
         {
-            throw new Exception("在Details视图中抛出异常");
+            logger.LogTrace("Trace(跟踪)Log");
+            logger.LogDebug("Debug(调试)Log");
+            logger.LogInformation("信息(Information)Log");
+            logger.LogWarning("警告(Warning)Log");
+            logger.LogError("错误(Error)Log");
+            logger.LogCritical("严重(Critical)Log");
+
             Student student = _studentRepository.GetStudentById(id);
             if (student == null)
             {
@@ -102,7 +111,7 @@ namespace MockSchoolManagement.Controllers
             if (student == null)
             {
                 Response.StatusCode = 404;
-                return View("StudentNotFound",id);
+                return View("StudentNotFound", id);
             }
             StudentEditViewModel studentEditViewModel = new StudentEditViewModel
             {

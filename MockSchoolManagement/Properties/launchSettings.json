@@ -30,11 +30,5 @@
         "ASPNETCORE_ENVIRONMENT": "Production"
       }
     }
-  },
-  "Logging": {
-    "LogLevel": {
-      "Default": "Warning",
-      "Microsoft": "Information"
-    }
   }
 }
