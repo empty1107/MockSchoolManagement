@@ -36,13 +36,6 @@ namespace MockSchoolManagement.Controllers
 
         public ViewResult Details(int id)
         {
-            logger.LogTrace("Trace(跟踪)Log");
-            logger.LogDebug("Debug(调试)Log");
-            logger.LogInformation("信息(Information)Log");
-            logger.LogWarning("警告(Warning)Log");
-            logger.LogError("错误(Error)Log");
-            logger.LogCritical("严重(Critical)Log");
-
             Student student = _studentRepository.GetStudentById(id);
             if (student == null)
             {

@@ -12,6 +12,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MockSchoolManagement.DataRepositories;
 using MockSchoolManagement.Infrastructure;
+using Microsoft.AspNetCore.Identity;
+using MockSchoolManagement.CustomerMiddlewares;
 
 namespace MockSchoolManagement
 {
@@ -41,6 +43,21 @@ namespace MockSchoolManagement
             //AddTransient 创建一个Transient（瞬时）服务，每次请求都会创建一个新的服务实例。
             //AddScoped 创建一个Scoped（作用域）服务。在范围内的每个请求中创建一个实例，但同一WEB请求中的其他服务在调用这个请求时，会使用相同的实例。注意：在一个客户端请求中是相同的，多个客户端请求中则不同。
             services.AddScoped<IStudentRepository, SQLStudentRepository>();
+
+            //添加identity服务,AddIdentity()方法为系统提供默认的用户和角色类型的身份证验证系统
+            //CustomIdentityErrorDescriber 自定义验证提示内容
+            services.AddIdentity<IdentityUser, IdentityRole>().AddErrorDescriber<CustomIdentityErrorDescriber>().AddEntityFrameworkStores<AppDbContext>();
+
+            //配置密码复杂度的验证，由 options.Password 提供
+            //还有用户、登录、策略等配置信息，options 灵活配置
+            services.Configure<IdentityOptions>(options =>
+            {
+                options.Password.RequiredLength = 6;
+                options.Password.RequiredUniqueChars = 3;//密码中允许最大的重复字符数
+                options.Password.RequireNonAlphanumeric = false;//是否需要非字母数字
+                options.Password.RequireUppercase = false;//是否需要有大写字母
+                options.Password.RequireLowercase = false;//是否需要有小写字母
+            });
         }
 
         /// <summary>
@@ -68,6 +85,8 @@ namespace MockSchoolManagement
             }
             //使用纯静态文件支持的中间件，而不使用带有终端的中间件
             app.UseStaticFiles();
+            //添加验证中间件
+            app.UseAuthentication();
             //路由中间件
             app.UseRouting();
             //终结点路由
