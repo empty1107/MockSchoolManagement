@@ -11,7 +11,7 @@ namespace MockSchoolManagement.Infrastructure
     /// <summary>
     /// 应用程序数据库上下文
     /// </summary>
-    public class AppDbContext : IdentityDbContext
+    public class AppDbContext : IdentityDbContext<ApplicationUser>
     {
         //DbContextOptions 实例负责承载应用中的配置信息，如连接字符串、数据库提供商等内容。
         public AppDbContext(DbContextOptions<AppDbContext> options)

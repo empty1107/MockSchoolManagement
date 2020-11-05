@@ -1,17 +1,33 @@
-//库管理器清单
 {
-  "version": "1.0",//当前的libman文件版本
-  "defaultProvider": "cdnjs",//默认从哪个CND网络下载的文件
+  "version": "1.0",
+  "defaultProvider": "cdnjs",
   "libraries": [
     {
-      "library": "twitter-bootstrap@4.3.1", //要下载的前端包名称，包括版本号
-      "destination": "wwwroot/lib/twitter-bootstrap/" //存放库的文件路径地址
+      "library": "twitter-bootstrap@4.3.1",
+      "destination": "wwwroot/lib/twitter-bootstrap/"
     },
     {
       "library": "jquery@3.4.1",
       "destination": "wwwroot/lib/jquery/",
       "files": [
-        "jquery.min.js"//选择特定的文件，而不是下载所有的文件
+        "jquery.min.js",
+        "jquery.js"
+      ]
+    },
+    {
+      "library": "jquery-validate@1.19.1",
+      "destination": "wwwroot/lib/jquery-validate/",
+      "files": [
+        "jquery.validate.min.js",
+        "jquery.validate.js"
+      ]
+    },
+    {
+      "library": "jquery-validation-unobtrusive@3.2.11",
+      "destination": "wwwroot/lib/jquery-validation-unobtrusive/",
+      "files": [
+        "jquery.validate.unobtrusive.min.js",
+        "jquery.validate.unobtrusive.js"
       ]
     }
   ]

@@ -14,6 +14,10 @@ using MockSchoolManagement.DataRepositories;
 using MockSchoolManagement.Infrastructure;
 using Microsoft.AspNetCore.Identity;
 using MockSchoolManagement.CustomerMiddlewares;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
+using MockSchoolManagement.Models;
 
 namespace MockSchoolManagement
 {
@@ -36,7 +40,13 @@ namespace MockSchoolManagement
             services.AddDbContextPool<AppDbContext>(options => options.UseSqlServer(_configuration.GetConnectionString("MockStudentDBConnection")));
 
             //注册配置文件服务
-            services.AddControllersWithViews(a => a.EnableEndpointRouting = false).AddXmlSerializerFormatters();//AddXmlSerializerFormatters允许返回xml
+            services.AddControllersWithViews(config =>
+            {
+                //全局拦截验证，所以会自动跳转登录页
+                var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+                config.Filters.Add(new AuthorizeFilter(policy));
+                //config.EnableEndpointRouting = false;
+            }).AddXmlSerializerFormatters();//AddXmlSerializerFormatters允许返回xml
 
             //注入服务的三种方法
             //AddSingleton 创建一个Singleton（单例）服务。首次请求创建，然后所有后续请求都会使用相同实例。
@@ -46,7 +56,7 @@ namespace MockSchoolManagement
 
             //添加identity服务,AddIdentity()方法为系统提供默认的用户和角色类型的身份证验证系统
             //CustomIdentityErrorDescriber 自定义验证提示内容
-            services.AddIdentity<IdentityUser, IdentityRole>().AddErrorDescriber<CustomIdentityErrorDescriber>().AddEntityFrameworkStores<AppDbContext>();
+            services.AddIdentity<ApplicationUser, IdentityRole>().AddErrorDescriber<CustomIdentityErrorDescriber>().AddEntityFrameworkStores<AppDbContext>();
 
             //配置密码复杂度的验证，由 options.Password 提供
             //还有用户、登录、策略等配置信息，options 灵活配置
