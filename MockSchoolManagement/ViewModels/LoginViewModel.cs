@@ -11,10 +11,9 @@ namespace MockSchoolManagement.ViewModels
     /// </summary>
     public class LoginViewModel
     {
-        [Display(Name = "邮箱地址")]
-        [Required(ErrorMessage = "请输入邮箱地址")]
-        [EmailAddress]
-        public string Email { get; set; }
+        [Display(Name = "用户名")]
+        [Required(ErrorMessage = "请输入用户名")]
+        public string UserName { get; set; }
         [Display(Name = "密码")]
         [Required(ErrorMessage = "请输入密码")]
         [DataType(DataType.Password)]

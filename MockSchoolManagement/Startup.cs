@@ -42,7 +42,7 @@ namespace MockSchoolManagement
             //注册配置文件服务
             services.AddControllersWithViews(config =>
             {
-                //全局拦截验证，所以会自动跳转登录页
+                //全局身份验证拦截验证，所以会自动跳转登录页
                 var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
                 config.Filters.Add(new AuthorizeFilter(policy));
                 //config.EnableEndpointRouting = false;
@@ -95,10 +95,12 @@ namespace MockSchoolManagement
             }
             //使用纯静态文件支持的中间件，而不使用带有终端的中间件
             app.UseStaticFiles();
-            //添加验证中间件
+            //添加验证中间件，身份证验证中间件
             app.UseAuthentication();
             //路由中间件
             app.UseRouting();
+            //用户授权中间件，必须放于 UseRouting 和 UseEndpoints之间
+            app.UseAuthorization();
             //终结点路由
             app.UseEndpoints((endpoints) =>
             {

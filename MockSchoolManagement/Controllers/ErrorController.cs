@@ -46,7 +46,7 @@ namespace MockSchoolManagement.Controllers
         public IActionResult Error()
         {
             //获取异常细节
-            var exceptionHandlerPathFeature =HttpContext.Features.Get<IExceptionHandlerPathFeature>();
+            var exceptionHandlerPathFeature = HttpContext.Features.Get<IExceptionHandlerPathFeature>();
 
             //ViewBag.ExceptionPath = exceptionHandlerPathFeature.Path;
             //ViewBag.ExceptionMessage = exceptionHandlerPathFeature.Error.Message;

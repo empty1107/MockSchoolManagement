@@ -1,0 +1,12 @@
+﻿
+@{
+    ViewData["Title"] = "页面不存在";
+}
+
+<div class="alert alert-danger mt-1 mb-1">
+    <h4>404 Not Found错误：</h4>
+    <hr />
+    <h5>@ViewBag.ErrorMessage</h5>
+</div>
+<a asp-action="Index" asp-controller="Home" class="btn btn-outline-success" style="width:auto;">单机此处返回首页</a>
+

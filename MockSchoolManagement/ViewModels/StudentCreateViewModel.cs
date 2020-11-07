@@ -26,5 +26,10 @@ namespace MockSchoolManagement.ViewModels
         /// </summary>
         [Display(Name = "头像")]
         public List<IFormFile> Photos { get; set; }
+
+        public StudentCreateViewModel()
+        {
+            Photos = new List<IFormFile>();
+        }
     }
 }

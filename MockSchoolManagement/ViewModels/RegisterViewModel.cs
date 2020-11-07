@@ -17,7 +17,7 @@ namespace MockSchoolManagement.ViewModels
         [EmailAddress(ErrorMessage = "请输入正确的邮箱地址")]
         [Display(Name = "邮箱地址")]
         [Remote(action: "IsEmailInUse", controller: "Account")]//用于远程验证
-        [ValidEmailDomain(allowedDomain: "wh.com", ErrorMessage = "邮箱地址后缀必须是 wh.com")]//自定义验证
+        //[ValidEmailDomain(allowedDomain: "wh.com", ErrorMessage = "邮箱地址后缀必须是 wh.com")]//自定义验证
         public string Email { get; set; }
 
         [Required(ErrorMessage = "请输入密码")]

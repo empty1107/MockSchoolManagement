@@ -11,7 +11,7 @@ namespace MockSchoolManagement.ViewModels
     /// </summary>
     public class CreateRoleViewModel
     {
-        [Required]
+        [Required(ErrorMessage = "角色名称不能为空")]
         [Display(Name = "角色")]
         public string RoleName { get; set; }
     }

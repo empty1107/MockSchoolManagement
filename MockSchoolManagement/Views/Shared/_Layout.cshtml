@@ -3,7 +3,7 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width" />
-    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" href="~/favicon.ico" type="image/x-icon" />
     <!--开发环境显示-->
     <environment include="Development">
         <link href="~/lib/twitter-bootstrap/css/bootstrap.css" rel="stylesheet" />
@@ -38,6 +38,17 @@
                     <li class="nav-item">
                         <a class="nav-link" asp-controller="home" asp-action="create">添加学生</a>
                     </li>
+                    @*如果用户登录，并且是Admin，显示管理菜单*@
+                    @if (_signInManager.IsSignedIn(User) && User.IsInRole("Admin"))
+                    {
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">管理</a>
+                            <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                                <a class="dropdown-item" asp-controller="Admin" asp-action="ListUsers">用户列表</a>
+                                <a class="dropdown-item" asp-controller="Admin" asp-action="ListRoles">角色列表</a>
+                            </div>
+                        </li>
+                    }
                 </ul>
                 <ul class="navbar-nav ml-auto">
                     @*如果用户已经登录，则显示注销*@

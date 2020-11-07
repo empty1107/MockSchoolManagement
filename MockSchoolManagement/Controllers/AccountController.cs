@@ -49,6 +49,13 @@ namespace MockSchoolManagement.Controllers
                 //成功
                 if (result.Succeeded)
                 {
+                    //如果用户是Admin角色，跳转用户列表视图
+                    if (_signInManager.IsSignedIn(User) && User.IsInRole("Admin"))
+                    {
+                        return RedirectToAction("ListUsers", "Admin");
+                    }
+                    //否则登录当前注册用户，跳转到主页，学生列表主页
+                    await _signInManager.SignInAsync(user, isPersistent: false);//isPersistent是否持久
                     return RedirectToAction("Index", "Home");
                 }
                 //如果有错误，添加到ModelState对象中
@@ -82,7 +89,7 @@ namespace MockSchoolManagement.Controllers
         {
             if (ModelState.IsValid)
             {
-                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, false);
+                var result = await _signInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, false);
                 if (result.Succeeded)
                 {
                     if (!string.IsNullOrEmpty(returnUrl))
@@ -119,6 +126,17 @@ namespace MockSchoolManagement.Controllers
             {
                 return Json($"邮箱：{email} 已经被注册使用了。");
             }
+        }
+
+
+        /// <summary>
+        /// 用户拒绝访问时的处理
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public IActionResult AccessDenied()
+        {
+            return View();
         }
     }
 }
