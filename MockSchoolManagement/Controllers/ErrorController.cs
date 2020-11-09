@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -42,6 +43,8 @@ namespace MockSchoolManagement.Controllers
             return View("NotFound");
         }
 
+        //允许匿名访问
+        [AllowAnonymous]
         [Route("Error")]
         public IActionResult Error()
         {

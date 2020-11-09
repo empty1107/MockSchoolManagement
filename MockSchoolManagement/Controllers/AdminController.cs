@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using MockSchoolManagement.Models;
 using MockSchoolManagement.ViewModels;
 using NLog.Web.LayoutRenderers;
@@ -19,11 +21,13 @@ namespace MockSchoolManagement.Controllers
     {
         private readonly RoleManager<IdentityRole> roleManager;
         private readonly UserManager<ApplicationUser> userManager;
+        private readonly ILogger<AdminController> logger;
 
-        public AdminController(RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager)
+        public AdminController(RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager, ILogger<AdminController> logger)
         {
             this.roleManager = roleManager;
             this.userManager = userManager;
+            this.logger = logger;
         }
 
         #region 角色管理
@@ -159,16 +163,30 @@ namespace MockSchoolManagement.Controllers
             }
             else
             {
-                var result = await roleManager.DeleteAsync(role);
-                if (result.Succeeded)
+                try
                 {
-                    return RedirectToAction("ListRoles");
+                    var result = await roleManager.DeleteAsync(role);
+                    if (result.Succeeded)
+                    {
+                        return RedirectToAction("ListRoles");
+                    }
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError("", error.Description);
+                    }
+                    return View("ListRoles");
                 }
-                foreach (var error in result.Errors)
+                //如果触发的异常是DbUpdateException，则知道我们无法删除角色
+                //因为该角色中已存在用户信息
+                catch (DbUpdateException ex)
                 {
-                    ModelState.AddModelError("", error.Description);
+                    //将异常记录到日志文件中
+                    logger.LogError($"发送异常：{ex}");
+                    //我们使用ViewBag.ErrorTitle 和 ViewBag.ErrorMessage来传递错误标题和详细信息
+                    ViewBag.ErrorTitle = $"角色：{role.Name} 正在被使用中...";
+                    ViewBag.ErrorMessage = $" 无法删除{role.Name}角色，因为此角色中已经存在用户。如果读者想删除此角色，需要先从该角色中删除用户，然后尝试删除该角色本身。";
+                    return View("Error");
                 }
-                return View("ListRoles");
             }
         }
         #endregion

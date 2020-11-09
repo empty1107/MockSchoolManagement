@@ -27,6 +27,14 @@ namespace MockSchoolManagement.Infrastructure
             //但未调用基本IdentityDbContext类OnModelCreating()方法，我们需要调用基类OnModelCreating()使用该方法的基础关键字
             base.OnModelCreating(modelBuilder);
             modelBuilder.Seed();//种子数据
+
+            //获取当前系统中所有领域模型上的外键列表
+            var foreignKeys = modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys());
+            foreach (var foreignKey in foreignKeys)
+            {
+                //将它们的删除行为配置为 Restrict ，即无操作
+                foreignKey.DeleteBehavior = DeleteBehavior.Restrict;
+            }
         }
     }
 }
