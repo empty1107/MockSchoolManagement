@@ -59,7 +59,7 @@
             }
         </div>
         <div class="card-footer">
-            <a href="#" style="width:auto;" class="btn btn-primary">管理角色</a>
+            <a asp-controller="Admin" asp-action="ManageUserRoles" asp-route-userId="@Model.Id" style="width:auto;" class="btn btn-primary">管理角色</a>
         </div>
     </div>
 
@@ -68,7 +68,7 @@
         <div class="card-body">
             @if (Model.Claims.Any())
             {
-                foreach (var claim in Model.Roles)
+                foreach (var claim in Model.Claims)
                 {
                     <h5 class="card-title">@claim</h5>
                 }
@@ -79,7 +79,7 @@
             }
         </div>
         <div class="card-footer">
-            <a href="#" style="width:auto;" class="btn btn-primary">管理声明</a>
+            <a asp-action="ManageUserClaims" asp-controller="Admin" asp-route-userId="@Model.Id"  style="width:auto;" class="btn btn-primary">管理声明</a>
         </div>
     </div>
 </form>
