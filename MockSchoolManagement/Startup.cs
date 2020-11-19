@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using MockSchoolManagement.Models;
+using MockSchoolManagement.Security;
 
 namespace MockSchoolManagement
 {
@@ -68,6 +69,52 @@ namespace MockSchoolManagement
                 options.Password.RequireUppercase = false;//是否需要有大写字母
                 options.Password.RequireLowercase = false;//是否需要有小写字母
             });
+
+            //策略结合声明授权 RequireClaim（用于管理声明授权），RequireRole（用于管理角色授权），RequireAssertion（用于自定义授权）
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("DeleteRolePolicy", policy => policy.RequireClaim("Delete Role"));//关联Delete Role声明
+                options.AddPolicy("AdminRolePolicy", policy => policy.RequireRole("Admin"));//管理Admin 角色
+                //策略结合多个角色进行授权
+                options.AddPolicy("SuperAdminPolicy", policy => policy.RequireRole("Admin", "User", "SuperManager"));
+                options.AddPolicy("AllowedCountryPolicy", policy => policy.RequireClaim("Country", "China", "USA", "UK"));
+                //自定义策略
+                //options.AddPolicy("EditRolePolicy", policy => policy.RequireAssertion(context => AuthorizeAccess(context)));
+            });
+
+            //注入HttpContextAccessor，负责自定义策略，可看页面参数那些
+            services.AddHttpContextAccessor();//帮我们获取http上下文
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("EditRolePolicy", policy => policy.AddRequirements(new ManageAdminRolesAndClaimsRequirement()));
+                options.InvokeHandlersAfterFailure = false;//调用策略返回失败请求
+            });
+            services.AddSingleton<IAuthorizationHandler, CanEditOnlyOtherAdminRolesAndClaimsHandler>();
+            services.AddSingleton<IAuthorizationHandler, SuperAdminHandler>();
+
+            services.ConfigureApplicationCookie(options =>
+            {
+                //修改拒绝访问的路由地址
+                options.AccessDeniedPath = new PathString("/Admin/AccessDenied");
+                //修改登录地址的路由
+                //options.LoginPath = new PathString("/Admin/Login");
+                //修改注销地址的路由
+                //options.LogoutPath = new PathString("/Admin/LogOut");
+                //统一系统全局的cookie名称
+                options.Cookie.Name = "MockSchoolCookieName";
+                //登录用户cookie的有效期
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+                //是否对cookie启用滑动过期时间
+                options.SlidingExpiration = true;
+            });
+        }
+
+        //授权访问，拥有 or 关系的策略就需要用到 RequireAssertion，否则全是 and 关系可以直接使用流水线策略
+        private bool AuthorizeAccess(AuthorizationHandlerContext context)
+        {
+            return context.User.IsInRole("Admin") &&
+                   context.User.HasClaim(claim => claim.Type == "Edit Role" && claim.Value == "true") ||
+                   context.User.IsInRole("Super Admin");
         }
 
         /// <summary>

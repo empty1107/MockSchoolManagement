@@ -127,16 +127,5 @@ namespace MockSchoolManagement.Controllers
                 return Json($"邮箱：{email} 已经被注册使用了。");
             }
         }
-
-
-        /// <summary>
-        /// 用户拒绝访问时的处理
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet]
-        public IActionResult AccessDenied()
-        {
-            return View();
-        }
     }
 }

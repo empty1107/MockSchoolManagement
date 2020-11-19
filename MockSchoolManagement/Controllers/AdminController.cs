@@ -87,6 +87,7 @@ namespace MockSchoolManagement.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet]
+        [Authorize(Policy = "EditRolePolicy")]
         public async Task<IActionResult> EditRole(string id)
         {
             //查找角色
@@ -315,7 +316,7 @@ namespace MockSchoolManagement.Controllers
                 Email = user.Email,
                 UserName = user.UserName,
                 City = user.City,
-                Claims = userClaims.Select(c => c.Value).ToList(),
+                Claims = userClaims,
                 Roles = userRoles
             };
             return View(model);
@@ -389,6 +390,7 @@ namespace MockSchoolManagement.Controllers
         /// <param name="userId"></param>
         /// <returns></returns>
         [HttpGet]
+        [Authorize(Policy = "EditRolePolicy")]
         public async Task<IActionResult> ManageUserRoles(string userId)
         {
             ViewBag.userId = userId;
@@ -513,8 +515,8 @@ namespace MockSchoolManagement.Controllers
                 ModelState.AddModelError("", "无法删除当前用户的声明");
                 return View(model);
             }
-            //添加新的声明信息
-            result = await userManager.AddClaimsAsync(user, model.Cliams.Where(x => x.IsSelected).Select(x => new Claim(x.ClaimType, x.ClaimType)));
+            //添加Claim列表到数据库中，然后对UI界面上被选中的值进行bool判断
+            result = await userManager.AddClaimsAsync(user, model.Cliams.Select(c => new Claim(c.ClaimType, c.IsSelected ? "true" : "false")));
             if (!result.Succeeded)
             {
                 ModelState.AddModelError("", "无法向用户添加选定的声明");
@@ -523,5 +525,15 @@ namespace MockSchoolManagement.Controllers
             return RedirectToAction("EditUser", new { id = model.UserId });
         }
         #endregion
+
+        /// <summary>
+        /// 用户拒绝访问时的处理
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
     }
 }
