@@ -55,6 +55,14 @@ namespace MockSchoolManagement
             //AddScoped 创建一个Scoped（作用域）服务。在范围内的每个请求中创建一个实例，但同一WEB请求中的其他服务在调用这个请求时，会使用相同的实例。注意：在一个客户端请求中是相同的，多个客户端请求中则不同。
             services.AddScoped<IStudentRepository, SQLStudentRepository>();
 
+            //添加第三方登录，GitHub
+            services.AddAuthentication().AddGitHub(options =>
+            {
+                options.ClientId = _configuration["Authentication:GitHub:ClientId"];
+                options.ClientSecret = _configuration["Authentication:GitHub:ClientSecret"];
+                options.Scope.Add("user:email");
+            });
+
             //添加identity服务,AddIdentity()方法为系统提供默认的用户和角色类型的身份证验证系统
             //CustomIdentityErrorDescriber 自定义验证提示内容
             services.AddIdentity<ApplicationUser, IdentityRole>().AddErrorDescriber<CustomIdentityErrorDescriber>().AddEntityFrameworkStores<AppDbContext>();
@@ -68,6 +76,7 @@ namespace MockSchoolManagement
                 options.Password.RequireNonAlphanumeric = false;//是否需要非字母数字
                 options.Password.RequireUppercase = false;//是否需要有大写字母
                 options.Password.RequireLowercase = false;//是否需要有小写字母
+                options.SignIn.RequireConfirmedEmail = true;//登录需要邮箱验证
             });
 
             //策略结合声明授权 RequireClaim（用于管理声明授权），RequireRole（用于管理角色授权），RequireAssertion（用于自定义授权）

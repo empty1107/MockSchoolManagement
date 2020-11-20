@@ -9,6 +9,8 @@
     <!--此元素指定如何托管ASP.NET Core应用程序，它表示程序应该托管InProcess（IIS Express）还是OutOfProcess（Kestrel）-->
     <!--从性能的角度看进程内托管相对于outofprocess托管提供了更高的请求吞吐量-->
     <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
+	<!--用户机密，路径位于C:\Users\ ｛UserName｝\AppData\Roaming\Microsoft\UserSecrets\ ｛ID｝-->
+    <UserSecretsId>da17ea53-4e52-4e05-98af-5770436d0ef8</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,6 +31,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AspNet.Security.OAuth.GitHub" Version="3.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="3.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.0">
