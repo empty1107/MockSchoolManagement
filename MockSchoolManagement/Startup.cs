@@ -65,7 +65,9 @@ namespace MockSchoolManagement
 
             //添加identity服务,AddIdentity()方法为系统提供默认的用户和角色类型的身份证验证系统
             //CustomIdentityErrorDescriber 自定义验证提示内容
-            services.AddIdentity<ApplicationUser, IdentityRole>().AddErrorDescriber<CustomIdentityErrorDescriber>().AddEntityFrameworkStores<AppDbContext>();
+            services.AddIdentity<ApplicationUser, IdentityRole>()
+                        .AddErrorDescriber<CustomIdentityErrorDescriber>().AddEntityFrameworkStores<AppDbContext>()
+                        .AddDefaultTokenProviders();//添加令牌提供服务
 
             //配置密码复杂度的验证，由 options.Password 提供
             //还有用户、登录、策略等配置信息，options 灵活配置

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using MockSchoolManagement.Models;
 using MockSchoolManagement.ViewModels;
 
@@ -19,11 +20,13 @@ namespace MockSchoolManagement.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly ILogger<AccountController> _logger;
 
-        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ILogger<AccountController> logger)
         {
             this._userManager = userManager;
             this._signInManager = signInManager;
+            this._logger = logger;
         }
 
         //打开注册页面
@@ -50,14 +53,21 @@ namespace MockSchoolManagement.Controllers
                 //成功
                 if (result.Succeeded)
                 {
+                    //生成电子邮箱确认令牌
+                    var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    //生成电子邮箱的确认连接
+                    var confirmationLink = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, token = token }, Request.Scheme);
+                    //需要注入 ILogger<AccountController> _logger 服务，记录生成的url链接
+                    _logger.Log(LogLevel.Warning, confirmationLink);
+
                     //如果用户是Admin角色，跳转用户列表视图
                     if (_signInManager.IsSignedIn(User) && User.IsInRole("Admin"))
                     {
                         return RedirectToAction("ListUsers", "Admin");
                     }
-                    //否则登录当前注册用户，跳转到主页，学生列表主页
-                    await _signInManager.SignInAsync(user, isPersistent: false);//isPersistent是否持久
-                    return RedirectToAction("Index", "Home");
+                    ViewBag.ErrorTitle = "注册成功";
+                    ViewBag.ErrorMessage = $"在您登入系统前，我们已经给您发了一份邮件，需要您先进行邮件验证，单机确认链接即可完成。";
+                    return View("Error");
                 }
                 //如果有错误，添加到ModelState对象中
                 //将由验证摘要标记助手显示到视图中
@@ -112,11 +122,8 @@ namespace MockSchoolManagement.Controllers
                         {
                             return Redirect(returnUrl);
                         }
-                        else
-                        {
-                            return RedirectToAction("Index", "Home");
-                        }
                     }
+                    return RedirectToAction("Index", "Home");
                 }
                 ModelState.AddModelError(string.Empty, "登录失败，请重试。");
             }
@@ -187,6 +194,16 @@ namespace MockSchoolManagement.Controllers
                         };
                         //如果不存在，则创建一个用户，但是这用户没有密码
                         await _userManager.CreateAsync(user);
+
+                        //生成电子邮箱令牌
+                        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                        //生成确认链接
+                        var confirmationLink = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, token = token }, Request.Scheme);
+                        //记录生成的确认链接
+                        _logger.Log(LogLevel.Warning, confirmationLink);
+                        ViewBag.ErrorTitle = "注册成功";
+                        ViewBag.ErrorMessage = $"在您登入系统前，我们已经给您发了一份邮件，需要您先进行邮件验证，单机确认链接即可完成。";
+                        return View("Error");
                     }
                     //在 AspNetUserLogins 中添加一行用户数据，然后将当前用户登录到系统中
                     await _userManager.AddLoginAsync(user, info);
@@ -241,5 +258,112 @@ namespace MockSchoolManagement.Controllers
             ViewBag.ErrorTitle = "您的电子邮箱还未进行验证";
             return View("Error");
         }
+
+        //激活用户邮箱页面
+        [HttpGet]
+        public IActionResult ActivateUserEmail()
+        {
+            return View();
+        }
+
+        //激活用户邮箱
+        [HttpPost]
+        public async Task<IActionResult> ActivateUserEmail(EmailAddressViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                //通过邮箱查询用户
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user != null)
+                {
+                    if (!await _userManager.IsEmailConfirmedAsync(user))
+                    {
+                        //生成电子邮箱令牌
+                        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                        //生成确认链接
+                        var confirmationLink = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, token = token }, Request.Scheme);
+                        //记录生成的确认链接
+                        _logger.Log(LogLevel.Warning, confirmationLink);
+                        ViewBag.Message = $"如果您在我们系统有注册账户，我们已经给您发了一份邮件，需要您先进行邮件验证，请前往邮箱激活您的账户。";
+                        //重定向到忘记邮箱确认视图
+                        return View("ActivateUserEmailConfirmation", ViewBag.Message);
+                    }
+                }
+            }
+            ViewBag.Message = "请确认邮箱是否存在异常，现在我们无法给您发送激活链接。";
+            //为了避免账户枚举和暴力攻击，不进行用户不存在活邮箱未验证的提示
+            return View("ActivateUserEmailConfirmation", ViewBag.Message);
+        }
+
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(EmailAddressViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                //有用户并且邮箱已经验证
+                if (user != null && await _userManager.IsEmailConfirmedAsync(user))
+                {
+                    //生成重置密码的token
+                    var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                    //生成重置密码的链接
+                    var passwordResetLink = Url.Action("ResetPassword", "Account", new { email = model.Email, token }, Request.Scheme);
+                    //将重置密码记录在日志中
+                    _logger.Log(LogLevel.Warning, passwordResetLink);
+                    //重定向到重置密码视图
+                    return View("ForgotPasswordConfirmation");
+                }
+                //为了避免账户枚举和暴力攻击，不进行用户不存在活邮箱未验证的提示
+                return View("ForgotPasswordConfirmation", ViewBag.Message);
+            }
+            return View(model);
+        }
+
+        //重置密码页面
+        [HttpGet]
+        public IActionResult ResetPassword(string token, string email)
+        {
+            if (token == null || email == null)
+            {
+                ModelState.AddModelError("", "无效的重置令牌");
+            }
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                //有用户并且邮箱已经验证
+                if (user != null)
+                {
+                    //重置用户密码
+                    var result = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
+                    if (result.Succeeded)
+                    {
+                        return View("ResetPasswordConfirmation");
+                    }
+                    //显示验证错误信息，当令牌已使用或密码复杂性，等不符合标准时
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError("", error.Description);
+                    }
+                    return View(model);
+                }
+                // 为了避免账户枚举和暴力攻击，不要提示用户不存在
+                return View("ResetPasswordConfirmation");
+            }
+            //如果验证未通过，显示验证错误
+            return View(model);
+        }
+
     }
 }
