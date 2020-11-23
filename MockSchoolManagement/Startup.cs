@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using MockSchoolManagement.Models;
 using MockSchoolManagement.Security;
+using MockSchoolManagement.Security.CustomTokenProvider;
 
 namespace MockSchoolManagement
 {
@@ -63,12 +64,6 @@ namespace MockSchoolManagement
                 options.Scope.Add("user:email");
             });
 
-            //添加identity服务,AddIdentity()方法为系统提供默认的用户和角色类型的身份证验证系统
-            //CustomIdentityErrorDescriber 自定义验证提示内容
-            services.AddIdentity<ApplicationUser, IdentityRole>()
-                        .AddErrorDescriber<CustomIdentityErrorDescriber>().AddEntityFrameworkStores<AppDbContext>()
-                        .AddDefaultTokenProviders();//添加令牌提供服务
-
             //配置密码复杂度的验证，由 options.Password 提供
             //还有用户、登录、策略等配置信息，options 灵活配置
             services.Configure<IdentityOptions>(options =>
@@ -79,7 +74,21 @@ namespace MockSchoolManagement
                 options.Password.RequireUppercase = false;//是否需要有大写字母
                 options.Password.RequireLowercase = false;//是否需要有小写字母
                 options.SignIn.RequireConfirmedEmail = true;//登录需要邮箱验证
+
+                //通过自定义的 CustomEmailConfirmation 名称来覆盖旧有的token名称
+                //使它与AddTokenProvider<CustomEmailConfirmationTokenProvider<ApplicationUser("CustomEmailConfirmation")关联在一起
+                options.Tokens.EmailConfirmationTokenProvider = "CustomEmailConfirmation";
+
+                options.Lockout.MaxFailedAccessAttempts = 5;//设置密码最大失败访问次数
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);//失败之后，锁定访问15分钟
             });
+
+            //添加identity服务,AddIdentity()方法为系统提供默认的用户和角色类型的身份证验证系统
+            //CustomIdentityErrorDescriber 自定义验证提示内容
+            services.AddIdentity<ApplicationUser, IdentityRole>()
+                        .AddErrorDescriber<CustomIdentityErrorDescriber>().AddEntityFrameworkStores<AppDbContext>()
+                        .AddDefaultTokenProviders()//添加令牌提供服务
+                        .AddTokenProvider<CustomEmailConfirmationTokenProvider<ApplicationUser>>("CustomEmailConfirmation");
 
             //策略结合声明授权 RequireClaim（用于管理声明授权），RequireRole（用于管理角色授权），RequireAssertion（用于自定义授权）
             services.AddAuthorization(options =>
@@ -93,6 +102,12 @@ namespace MockSchoolManagement
                 //options.AddPolicy("EditRolePolicy", policy => policy.RequireAssertion(context => AuthorizeAccess(context)));
             });
 
+            //修改所有令牌类型的有效期为5h
+            services.Configure<DataProtectionTokenProviderOptions>(o => o.TokenLifespan = TimeSpan.FromHours(5));
+
+            //仅更改电子邮箱验证令牌类型有效期为3天
+            services.Configure<CustomEmailConfirmationTokenProviderOptions>(o => o.TokenLifespan = TimeSpan.FromDays(3));
+
             //注入HttpContextAccessor，负责自定义策略，可看页面参数那些
             services.AddHttpContextAccessor();//帮我们获取http上下文
             services.AddAuthorization(options =>
@@ -102,6 +117,7 @@ namespace MockSchoolManagement
             });
             services.AddSingleton<IAuthorizationHandler, CanEditOnlyOtherAdminRolesAndClaimsHandler>();
             services.AddSingleton<IAuthorizationHandler, SuperAdminHandler>();
+            services.AddSingleton<DataProtectionPurposeStrings>();
 
             services.ConfigureApplicationCookie(options =>
             {

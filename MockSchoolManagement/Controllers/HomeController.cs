@@ -3,40 +3,55 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MockSchoolManagement.DataRepositories;
 using MockSchoolManagement.Models;
+using MockSchoolManagement.Security.CustomTokenProvider;
 using MockSchoolManagement.ViewModels;
 
 namespace MockSchoolManagement.Controllers
 {
+    /// <summary>
+    /// 主页控制器
+    /// </summary>
     public class HomeController : Controller
     {
         private readonly IStudentRepository _studentRepository;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly ILogger<HomeController> logger;
+        private readonly IDataProtector _protector;
 
-        public HomeController(IStudentRepository studentRepository, IWebHostEnvironment webHostEnvironment, ILogger<HomeController> logger)
+        public HomeController(IStudentRepository studentRepository, IWebHostEnvironment webHostEnvironment, ILogger<HomeController> logger, IDataProtectionProvider dataProtectionProvider, DataProtectionPurposeStrings dataProtectionPurposeStrings)
         {
             this._studentRepository = studentRepository;
             this._webHostEnvironment = webHostEnvironment;
             this.logger = logger;
+            this._protector = dataProtectionProvider.CreateProtector(dataProtectionPurposeStrings.StudentIdRouteValue);
         }
 
         public ViewResult Index()
         {
             //查询所有学生
-            var model = _studentRepository.GetAllStudents();
+            var model = _studentRepository.GetAllStudents().Select(s =>
+            {
+                s.EncryptedId = _protector.Protect(s.Id.ToString());//IDataProtector 提供加密学生ID字段
+                return s;
+            }).ToList();
             //将学生列表传递到视图
             return View(model);
         }
 
-        public ViewResult Details(int id)
+        public ViewResult Details(string id)
         {
-            Student student = _studentRepository.GetStudentById(id);
+            //使用Unprotect() 方法来解密学生ID
+            string decryptedId = _protector.Unprotect(id);
+            int decryptedStudentId = Convert.ToInt32(decryptedId);
+
+            Student student = _studentRepository.GetStudentById(decryptedStudentId);
             if (student == null)
             {
                 ViewBag.ErrorMessage = $"学生Id={id}的信息不存在，请重试。";

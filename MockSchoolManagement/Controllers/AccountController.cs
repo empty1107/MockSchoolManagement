@@ -113,7 +113,9 @@ namespace MockSchoolManagement.Controllers
                     ModelState.AddModelError(string.Empty, "您的电子邮箱还未进行验证");
                     return View(model);
                 }
-                var result = await _signInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, false);
+                //在PasswordSignInAsync()中，我们讲最后一个参数从false改为true，用于启动账户锁定
+                //每次登录失败后，都会将 AspNetUsers 表中的AccessFailedCount增加1，等于5时将会锁定
+                var result = await _signInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe,true);
                 if (result.Succeeded)
                 {
                     if (!string.IsNullOrEmpty(returnUrl))
@@ -124,6 +126,11 @@ namespace MockSchoolManagement.Controllers
                         }
                     }
                     return RedirectToAction("Index", "Home");
+                }
+                //如果账户状态为IsLockedOut，那么重定向到AccountLocked视图，给予提示
+                if (result.IsLockedOut)
+                {
+                    return View("AccountLocked");
                 }
                 ModelState.AddModelError(string.Empty, "登录失败，请重试。");
             }
@@ -349,6 +356,12 @@ namespace MockSchoolManagement.Controllers
                     var result = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
                     if (result.Succeeded)
                     {
+                        //重置成功后，如果当前用户被锁定，则设置该账户锁定结束时间为当前UTC日期时间，这样就能用新密码登录
+                        if (await _userManager.IsLockedOutAsync(user))
+                        {
+                            await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow);
+                            //DateTimeOffset值的是UTC日期时间，即格林威治时间
+                        }
                         return View("ResetPasswordConfirmation");
                     }
                     //显示验证错误信息，当令牌已使用或密码复杂性，等不符合标准时
@@ -365,5 +378,80 @@ namespace MockSchoolManagement.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> ChangePassword()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            //判断当前用户是否有密码
+            var userHasPassword = await _userManager.HasPasswordAsync(user);
+            if (!userHasPassword)
+            {
+                return RedirectToAction("AddPassword");
+            }
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    return RedirectToAction("Login");
+                }
+                //使用 ChangePasswordAsync() 修改密码
+                var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+                if (!result.Succeeded)
+                {
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError("", error.Description);
+                    }
+                    return View();
+                }
+                //修改成功，刷新登录cookie
+                await _signInManager.RefreshSignInAsync(user);
+                return View("ChangePasswordConfirmation");
+            }
+            return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> AddPassword()
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            var userHasPassword = await _userManager.HasPasswordAsync(user);
+            if (userHasPassword)
+            {
+                return RedirectToAction("ChangePassword");
+            }
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddPassword(AddPasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.GetUserAsync(User);
+                //添加新密码
+                var result = await _userManager.AddPasswordAsync(user, model.NewPassword);
+                if (!result.Succeeded)
+                {
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError("", error.Description);
+                    }
+                    return View();
+                }
+                //添加成功，刷新登录cookie
+                await _signInManager.RefreshSignInAsync(user);
+                return View("AddPasswordConfirmation");
+            }
+            return View(model);
+        }
     }
 }
