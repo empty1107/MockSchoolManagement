@@ -20,6 +20,8 @@ namespace MockSchoolManagement.Infrastructure
         }
         //DbSet<TEntity>包含一个实体属性
         public DbSet<Student> Students { get; set; }
+        public DbSet<Course> Courses { get; set; }
+        public DbSet<StudentCourse> StudentCourses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -27,6 +29,11 @@ namespace MockSchoolManagement.Infrastructure
             //但未调用基本IdentityDbContext类OnModelCreating()方法，我们需要调用基类OnModelCreating()使用该方法的基础关键字
             base.OnModelCreating(modelBuilder);
             modelBuilder.Seed();//种子数据
+
+            //指定实体在数据库中生成的名称
+            modelBuilder.Entity<Course>().ToTable("Course", "School");
+            modelBuilder.Entity<StudentCourse>().ToTable("StudentCourse");
+            modelBuilder.Entity<Student>().ToTable("Student");
 
             //获取当前系统中所有领域模型上的外键列表
             var foreignKeys = modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys());
