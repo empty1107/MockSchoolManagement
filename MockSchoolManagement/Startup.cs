@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using MockSchoolManagement.Models;
 using MockSchoolManagement.Security;
 using MockSchoolManagement.Security.CustomTokenProvider;
+using MockSchoolManagement.Infrastructure.Repositories;
 
 namespace MockSchoolManagement
 {
@@ -55,6 +56,8 @@ namespace MockSchoolManagement
             //AddTransient 创建一个Transient（瞬时）服务，每次请求都会创建一个新的服务实例。
             //AddScoped 创建一个Scoped（作用域）服务。在范围内的每个请求中创建一个实例，但同一WEB请求中的其他服务在调用这个请求时，会使用相同的实例。注意：在一个客户端请求中是相同的，多个客户端请求中则不同。
             services.AddScoped<IStudentRepository, SQLStudentRepository>();
+            //注入仓储接口、仓储接口实现
+            services.AddTransient(typeof(IRepository<,>), typeof(RepositoryBase<,>));
 
             //添加第三方登录，GitHub
             services.AddAuthentication().AddGitHub(options =>
