@@ -153,7 +153,7 @@ namespace MockSchoolManagement.Controllers
             }
             StudentEditViewModel studentEditViewModel = new StudentEditViewModel
             {
-                Id = student.Id,
+                Id = _protector.Protect(student.Id.ToString()),
                 Name = student.Name,
                 Email = student.Email,
                 ExistingPhotoPath = student.PhotoPath,

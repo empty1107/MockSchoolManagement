@@ -21,6 +21,7 @@ namespace MockSchoolManagement.ViewModels
         [Required(ErrorMessage = "请输入邮箱地址")]
         public string Email { get; set; }
 
+        [DataType(DataType.DateTime, ErrorMessage = "入学时间无效")]
         [Required(ErrorMessage = "入学时间不能为空")]
         [Display(Name = "入学时间")]
         public DateTime EnrollmentDate { get; set; }

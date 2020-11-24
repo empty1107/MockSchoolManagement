@@ -17,6 +17,6 @@ namespace MockSchoolManagement.Application.Students
         /// <param name="currentPage">当前页</param>
         /// <param name="pageSize">每页记录数</param>
         /// <returns></returns>
-        Task<List<Student>> GetPaginatedResult(int currentPage, string searchString, string sortBy, int pageSize = 1);
+        Task<List<Student>> GetPaginatedResult(int currentPage, string searchString, string sortBy, int pageSize = 10);
     }
 }

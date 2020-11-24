@@ -22,7 +22,7 @@ namespace MockSchoolManagement.Application.Dtos
         /// <summary>
         /// 每页记录数
         /// </summary>
-        public int PageSize { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
         /// <summary>
         /// 总页数
         /// </summary>
