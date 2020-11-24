@@ -1,4 +1,5 @@
-﻿using MockSchoolManagement.Models;
+﻿using MockSchoolManagement.Application.Dtos;
+using MockSchoolManagement.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +18,6 @@ namespace MockSchoolManagement.Application.Students
         /// <param name="currentPage">当前页</param>
         /// <param name="pageSize">每页记录数</param>
         /// <returns></returns>
-        Task<List<Student>> GetPaginatedResult(int currentPage, string searchString, string sortBy, int pageSize = 10);
+        Task<PagedResultDto<Student>> GetPaginatedResult(GetStudentInput input);
     }
 }

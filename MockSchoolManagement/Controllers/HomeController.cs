@@ -38,23 +38,17 @@ namespace MockSchoolManagement.Controllers
             this._protector = dataProtectionProvider.CreateProtector(dataProtectionPurposeStrings.StudentIdRouteValue);
         }
 
-        public async Task<IActionResult> Index(string searchString, int currentPage = 1, string sortBy = "Id")
+        public async Task<IActionResult> Index(GetStudentInput input)
         {
-            ViewBag.CurrentFilter = searchString?.Trim();
-            PaginationModel paginationModel = new PaginationModel();
-            //总记录数
-            paginationModel.Count = await _studentRepository.CountAsync();
-            //当前页
-            paginationModel.CurrentPage = currentPage;
             //获取分页结果
-            var students = await _studentService.GetPaginatedResult(paginationModel.CurrentPage, searchString, sortBy);
-            paginationModel.Data = students.Select(s =>
+            var dtos = await _studentService.GetPaginatedResult(input);
+            dtos.Data = dtos.Data.Select(s =>
             {
                 s.EncryptedId = _protector.Protect(s.Id.ToString());
                 return s;
             }).ToList();
             //将学生列表传递到视图
-            return View(paginationModel);
+            return View(dtos);
         }
 
         public ViewResult Details(string id)

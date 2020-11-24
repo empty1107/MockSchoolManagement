@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Linq.Dynamic.Core;
 using Microsoft.EntityFrameworkCore;
+using MockSchoolManagement.Application.Dtos;
 
 namespace MockSchoolManagement.Application.Students
 {
@@ -21,16 +22,30 @@ namespace MockSchoolManagement.Application.Students
             this._stuRepository = stuRepository;
         }
 
-        public async Task<List<Student>> GetPaginatedResult(int currentPage, string searchString, string sortBy, int pageSize = 10)
+        public async Task<PagedResultDto<Student>> GetPaginatedResult(GetStudentInput input)
         {
             var query = _stuRepository.GetAll();
-            if (!string.IsNullOrEmpty(searchString))
+            if (!string.IsNullOrEmpty(input.FilterText))
             {
-                query = query.Where(s => s.Name.Contains(searchString) || s.Email.Contains(searchString));
+                query = query.Where(s => s.Name.Contains(input.FilterText) || s.Email.Contains(input.FilterText));
             }
-            query = query.OrderBy(sortBy);
-            var list = await query.Skip((currentPage - 1) * pageSize).Take(pageSize).AsNoTracking().ToListAsync();
-            return list;
+            //统计总记录数，用于分页计算总页数
+            var count = query.Count();
+            //根据需求排序
+            query = query.OrderBy(input.Sorting).Skip((input.CurrentPage - 1) * input.MaxResultCount).Take(input.MaxResultCount);
+            //查询结果List，加载到内存中
+            var models = await query.AsNoTracking().ToListAsync();
+
+            var dtos = new PagedResultDto<Student>
+            {
+                TotalCount = count,
+                CurrentPage = input.CurrentPage,
+                MaxResultCount = input.MaxResultCount,
+                Data = models,
+                FilterText = input.FilterText,
+                Sorting = input.Sorting
+            };
+            return dtos;
         }
     }
 }

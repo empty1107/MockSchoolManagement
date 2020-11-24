@@ -9,16 +9,12 @@ namespace MockSchoolManagement.Application.Dtos
     /// <summary>
     /// 分页模型
     /// </summary>
-    public class PaginationModel
+    public class PagedResultDto<TEntity> : PagedSortedAndFilterInput
     {
-        /// <summary>
-        /// 当前页
-        /// </summary>
-        public int CurrentPage { get; set; } = 1;
         /// <summary>
         /// 总记录数
         /// </summary>
-        public int Count { get; set; }
+        public int TotalCount { get; set; }
         /// <summary>
         /// 每页记录数
         /// </summary>
@@ -26,9 +22,11 @@ namespace MockSchoolManagement.Application.Dtos
         /// <summary>
         /// 总页数
         /// </summary>
-        public int TotalPages => (int)Math.Ceiling(decimal.Divide(Count, PageSize));
-
-        public List<Student> Data { get; set; }
+        public int TotalPages => (int)Math.Ceiling(decimal.Divide(TotalCount, PageSize));
+        /// <summary>
+        /// 查询数据（泛型）
+        /// </summary>
+        public List<TEntity> Data { get; set; }
         /// <summary>
         /// 是否显示上一页
         /// </summary>
@@ -44,7 +42,6 @@ namespace MockSchoolManagement.Application.Dtos
         /// <summary>
         /// 是否显示最后一页
         /// </summary>
-
         public bool ShowLast => CurrentPage != TotalPages;
     }
 }

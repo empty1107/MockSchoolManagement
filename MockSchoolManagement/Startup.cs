@@ -22,6 +22,7 @@ using MockSchoolManagement.Security;
 using MockSchoolManagement.Security.CustomTokenProvider;
 using MockSchoolManagement.Infrastructure.Repositories;
 using MockSchoolManagement.Application.Students;
+using MockSchoolManagement.Infrastructure.Data;
 
 namespace MockSchoolManagement
 {
@@ -173,6 +174,8 @@ namespace MockSchoolManagement
                 //建议使用，可以保留错误的请求信息，便于日志分析
                 app.UseStatusCodePagesWithReExecute("/Error/{0}");//不会重定向，页面地址显示为错误的链接地址
             }
+            //数据初始化
+            app.UseDataInitializer();
             //使用纯静态文件支持的中间件，而不使用带有终端的中间件
             app.UseStaticFiles();
             //添加验证中间件，身份证验证中间件
