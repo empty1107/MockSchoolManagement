@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,10 +7,14 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using MockSchoolManagement.DataRepositories;
+using MockSchoolManagement.Infrastructure.Repositories;
 using MockSchoolManagement.Models;
 using MockSchoolManagement.Security.CustomTokenProvider;
 using MockSchoolManagement.ViewModels;
+using System.Linq.Dynamic.Core;
+using Microsoft.EntityFrameworkCore;
+using MockSchoolManagement.Application.Dtos;
+using MockSchoolManagement.Application.Students;
 
 namespace MockSchoolManagement.Controllers
 {
@@ -20,38 +23,43 @@ namespace MockSchoolManagement.Controllers
     /// </summary>
     public class HomeController : Controller
     {
-        private readonly IStudentRepository _studentRepository;
+        private readonly IRepository<Student, int> _studentRepository;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly ILogger<HomeController> logger;
+        private readonly IStudentService _studentService;
         private readonly IDataProtector _protector;
 
-        public HomeController(IStudentRepository studentRepository, IWebHostEnvironment webHostEnvironment, ILogger<HomeController> logger, IDataProtectionProvider dataProtectionProvider, DataProtectionPurposeStrings dataProtectionPurposeStrings)
+        public HomeController(IRepository<Student, int> studentRepository, IWebHostEnvironment webHostEnvironment, ILogger<HomeController> logger, IDataProtectionProvider dataProtectionProvider, DataProtectionPurposeStrings dataProtectionPurposeStrings, IStudentService studentService)
         {
             this._studentRepository = studentRepository;
             this._webHostEnvironment = webHostEnvironment;
             this.logger = logger;
+            this._studentService = studentService;
             this._protector = dataProtectionProvider.CreateProtector(dataProtectionPurposeStrings.StudentIdRouteValue);
         }
 
-        public ViewResult Index()
+        public async Task<IActionResult> Index(string searchString, int currentPage = 1, string sortBy = "Id")
         {
-            //查询所有学生
-            var model = _studentRepository.GetAllStudents().Select(s =>
+            ViewBag.CurrentFilter = searchString?.Trim();
+            PaginationModel paginationModel = new PaginationModel();
+            //总记录数
+            paginationModel.Count = await _studentRepository.CountAsync();
+            //当前页
+            paginationModel.CurrentPage = currentPage;
+            //获取分页结果
+            var students = await _studentService.GetPaginatedResult(paginationModel.CurrentPage, searchString, sortBy);
+            paginationModel.Data = students.Select(s =>
             {
-                s.EncryptedId = _protector.Protect(s.Id.ToString());//IDataProtector 提供加密学生ID字段
+                s.EncryptedId = _protector.Protect(s.Id.ToString());
                 return s;
             }).ToList();
             //将学生列表传递到视图
-            return View(model);
+            return View(paginationModel);
         }
 
         public ViewResult Details(string id)
         {
-            //使用Unprotect() 方法来解密学生ID
-            string decryptedId = _protector.Unprotect(id);
-            int decryptedStudentId = Convert.ToInt32(decryptedId);
-
-            Student student = _studentRepository.GetStudentById(decryptedStudentId);
+            Student student = DecryptedStudent(id);
             if (student == null)
             {
                 ViewBag.ErrorMessage = $"学生Id={id}的信息不存在，请重试。";
@@ -63,8 +71,23 @@ namespace MockSchoolManagement.Controllers
                 PageTitle = "学生详情",
                 Student = student
             };
+            homeDetailsViewModel.Student.EncryptedId = _protector.Protect(student.Id.ToString());
             //将viewModel对象传递给view()方法
             return View(homeDetailsViewModel);
+        }
+
+        /// <summary>
+        /// 解密学生信息
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        private Student DecryptedStudent(string id)
+        {
+            //使用Unprotect()来解析StudentID
+            string decryptedId = _protector.Unprotect(id);
+            int decryptedStudentId = Convert.ToInt32(decryptedId);
+            Student student = _studentRepository.FirstOrDefault(s => s.Id == decryptedStudentId);
+            return student;
         }
 
         [HttpGet]
@@ -73,6 +96,11 @@ namespace MockSchoolManagement.Controllers
             return View();
         }
 
+        /// <summary>
+        /// 新增学生
+        /// </summary>
+        /// <param name="model">学生实体</param>
+        /// <returns></returns>
         [HttpPost]
         public IActionResult Create(StudentCreateViewModel model)
         {
@@ -102,20 +130,22 @@ namespace MockSchoolManagement.Controllers
                     Name = model.Name,
                     Email = model.Email,
                     Major = model.Major,
+                    EnrollmentDate = model.EnrollmentDate,
                     //文件名保存在Student对象的PhotoPath属性中
                     //它将被保存到数据库Students表
                     PhotoPath = uniqueFileName
                 };
                 _studentRepository.Insert(newStudent);
-                return RedirectToAction("Details", new { id = newStudent.Id });
+                var encryptedId = _protector.Protect(newStudent.Id.ToString());
+                return RedirectToAction("Details", new { id = encryptedId });
             }
             return View();
         }
 
         [HttpGet]
-        public ViewResult Edit(int id)
+        public ViewResult Edit(string id)
         {
-            Student student = _studentRepository.GetStudentById(id);
+            Student student = DecryptedStudent(id);
             if (student == null)
             {
                 ViewBag.ErrorMessage = $"学生Id={id}的信息不存在，请重试。";
@@ -128,6 +158,7 @@ namespace MockSchoolManagement.Controllers
                 Email = student.Email,
                 ExistingPhotoPath = student.PhotoPath,
                 Major = student.Major,
+                EnrollmentDate = student.EnrollmentDate
             };
             return View(studentEditViewModel);
         }
@@ -135,13 +166,15 @@ namespace MockSchoolManagement.Controllers
         [HttpPost]
         public IActionResult Edit(StudentEditViewModel model)
         {
+            //检查提供的数据是否有效，如果没有验证通过，则需要重新编辑学生信息
             if (ModelState.IsValid)
             {
-                Student student = _studentRepository.GetStudentById(model.Id);
+                Student student = DecryptedStudent(model.Id.ToString());
                 //用模型中的数据，更新student对象
                 student.Name = model.Name;
                 student.Major = model.Major;
                 student.Email = model.Email;
+                student.EnrollmentDate = model.EnrollmentDate;
 
                 //如果修改了头像，需要上传。没有修改则会保留之前的头像。
                 if (model.Photos.Count > 0)
@@ -194,6 +227,24 @@ namespace MockSchoolManagement.Controllers
                 }
             }
             return uniqueFileName;
+        }
+
+        /// <summary>
+        /// 删除学生
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IActionResult> DeleteUser(int id)
+        {
+            var student = await _studentRepository.FirstOrDefaultAsync(a => a.Id == id);
+            if (student == null)
+            {
+                ViewBag.ErrorMessage = $"无法找到ID为{id}的学生信息";
+                return View("NotFound");
+            }
+            await _studentRepository.DeleteAsync(a => a.Id == id);
+            return RedirectToAction("Index");
         }
     }
 }

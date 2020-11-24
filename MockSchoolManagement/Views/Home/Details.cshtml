@@ -15,10 +15,11 @@
                 <h4>学生ID:@Model.Student.Id</h4>
                 <h4>邮箱 :@Model.Student.Email</h4>
                 <h4>主修科目 :@Model.Student.Major</h4>
+                <h4>入学时间：@Model.Student.EnrollmentDate.ToString("yyyy-MM-dd")</h4>
             </div>
             <div class="card-footer text-center">
-                <a asp-controller="Home" asp-action="Index" class="btn btn-primary">返回</a>
-                <a href="#" class="btn btn-primary">编辑</a>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-info">返回</a>
+                <a asp-action="Edit" asp-controller="Home" asp-route-id="@Model.Student.EncryptedId" class="btn btn-primary">编辑</a>
                 <a href="#" class="btn btn-danger">删除</a>
             </div>
         </div>

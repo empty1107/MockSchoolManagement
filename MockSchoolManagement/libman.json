@@ -29,6 +29,22 @@
         "jquery.validate.unobtrusive.min.js",
         "jquery.validate.unobtrusive.js"
       ]
+    },
+    {
+      "provider": "unpkg",
+      "library": "font-awesome@4.7.0",
+      "destination": "wwwroot/lib/font-awesome/",
+      "files": [
+        "css/font-awesome.css",
+        "css/font-awesome.css.map",
+        "css/font-awesome.min.css",
+        "fonts/fontawesome-webfont.eot",
+        "fonts/fontawesome-webfont.svg",
+        "fonts/fontawesome-webfont.ttf",
+        "fonts/fontawesome-webfont.woff",
+        "fonts/fontawesome-webfont.woff2",
+        "fonts/FontAwesome.otf"
+      ]
     }
   ]
 }

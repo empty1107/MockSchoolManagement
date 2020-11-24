@@ -21,6 +21,7 @@ using MockSchoolManagement.Models;
 using MockSchoolManagement.Security;
 using MockSchoolManagement.Security.CustomTokenProvider;
 using MockSchoolManagement.Infrastructure.Repositories;
+using MockSchoolManagement.Application.Students;
 
 namespace MockSchoolManagement
 {
@@ -58,6 +59,8 @@ namespace MockSchoolManagement
             services.AddScoped<IStudentRepository, SQLStudentRepository>();
             //注入仓储接口、仓储接口实现
             services.AddTransient(typeof(IRepository<,>), typeof(RepositoryBase<,>));
+            //注入学生服务
+            services.AddScoped<IStudentService, StudentService>();
 
             //添加第三方登录，GitHub
             services.AddAuthentication().AddGitHub(options =>
