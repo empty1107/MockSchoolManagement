@@ -240,5 +240,23 @@ namespace MockSchoolManagement.Controllers
             await _studentRepository.DeleteAsync(a => a.Id == id);
             return RedirectToAction("Index");
         }
+
+        /// <summary>
+        /// 关于
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IActionResult> About()
+        {
+            //获取 IQueryable 类型的Student，然后通过 student.EnrollmentDate 进行分组
+            var data = from student in _studentRepository.GetAll()
+                       group student by student.EnrollmentDate into dateGroup
+                       select new EnrollmentDateGroupDto
+                       {
+                           EnrollmentDate = dateGroup.Key,
+                            StudentCount = dateGroup.Count()
+                       };
+            var dtos = await data.AsNoTracking().ToListAsync();
+            return View(dtos);
+        }
     }
 }

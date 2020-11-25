@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -14,7 +11,6 @@ using MockSchoolManagement.DataRepositories;
 using MockSchoolManagement.Infrastructure;
 using Microsoft.AspNetCore.Identity;
 using MockSchoolManagement.CustomerMiddlewares;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using MockSchoolManagement.Models;
@@ -23,6 +19,7 @@ using MockSchoolManagement.Security.CustomTokenProvider;
 using MockSchoolManagement.Infrastructure.Repositories;
 using MockSchoolManagement.Application.Students;
 using MockSchoolManagement.Infrastructure.Data;
+using MockSchoolManagement.Application.Courses;
 
 namespace MockSchoolManagement
 {
@@ -32,10 +29,12 @@ namespace MockSchoolManagement
     public class Startup
     {
         private readonly IConfiguration _configuration;
+        private readonly IWebHostEnvironment _env;
 
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
             this._configuration = configuration;
+            this._env = env;
         }
         // 配置应用程序所需要的服务
         public void ConfigureServices(IServiceCollection services)
@@ -45,13 +44,18 @@ namespace MockSchoolManagement
             services.AddDbContextPool<AppDbContext>(options => options.UseSqlServer(_configuration.GetConnectionString("MockStudentDBConnection")));
 
             //注册配置文件服务
-            services.AddControllersWithViews(config =>
+            var builder = services.AddControllersWithViews(config =>
             {
                 //全局身份验证拦截验证，所以会自动跳转登录页
                 var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
                 config.Filters.Add(new AuthorizeFilter(policy));
                 //config.EnableEndpointRouting = false;
-            }).AddXmlSerializerFormatters();//AddXmlSerializerFormatters允许返回xml
+            }).AddXmlSerializerFormatters(); //AddXmlSerializerFormatters允许返回xml
+            //开发环境才启用运行时编译
+            if (_env.IsDevelopment())
+            {
+                builder.AddRazorRuntimeCompilation();//启用运行时编译
+            }
 
             //注入服务的三种方法
             //AddSingleton 创建一个Singleton（单例）服务。首次请求创建，然后所有后续请求都会使用相同实例。
@@ -62,6 +66,8 @@ namespace MockSchoolManagement
             services.AddTransient(typeof(IRepository<,>), typeof(RepositoryBase<,>));
             //注入学生服务
             services.AddScoped<IStudentService, StudentService>();
+            //注入课程服务
+            services.AddScoped<ICourseService, CourseService>();
 
             //添加第三方登录，GitHub
             services.AddAuthentication().AddGitHub(options =>

@@ -69,11 +69,11 @@ namespace MockSchoolManagement.Infrastructure.Data
 
                 #region 学生课程关联种子数据
                 var studentCourses = new[] {
-                    new StudentCourse{CourseID = 1050,StudentID = 1010},
-                    new StudentCourse{CourseID = 4022,StudentID = 1010},
-                    new StudentCourse{CourseID = 2021,StudentID = 1010},
-                    new StudentCourse{CourseID = 4022,StudentID = 1011},
-                    new StudentCourse{CourseID = 2021,StudentID = 1012}
+                    new StudentCourse{CourseID = 1050,StudentID = 7},
+                    new StudentCourse{CourseID = 4022,StudentID = 7},
+                    new StudentCourse{CourseID = 2021,StudentID = 7},
+                    new StudentCourse{CourseID = 4022,StudentID = 8},
+                    new StudentCourse{CourseID = 2021,StudentID = 9}
                 };
                 foreach (var  sc in studentCourses)
                 {

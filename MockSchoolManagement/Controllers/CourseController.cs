@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using MockSchoolManagement.Application.Courses;
+using MockSchoolManagement.Application.Dtos;
 using MockSchoolManagement.DataRepositories;
 
 namespace MockSchoolManagement.Controllers
@@ -12,15 +14,16 @@ namespace MockSchoolManagement.Controllers
     /// </summary>
     public class CourseController : Controller
     {
-        private readonly ICourseRepository _courseRepository;
+        private readonly ICourseService _courseService;
 
-        public CourseController(ICourseRepository courseRepository)
+        public CourseController(ICourseService courseService)
         {
-            this._courseRepository = courseRepository;
+            this._courseService = courseService;
         }
-        public IActionResult Index()
+        public async Task<IActionResult> Index(GetCourseInput input)
         {
-            return View();
+            var models = await _courseService.GetPaginatedResult(input);
+            return View(models);
         }
     }
 }
