@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using MockSchoolManagement.Models.EnumTypes;
+using System.ComponentModel.DataAnnotations;
 
 namespace MockSchoolManagement.Models
 {
@@ -6,9 +7,16 @@ namespace MockSchoolManagement.Models
     {
         [Key]
         public int StudentsCourseId { get; set; }
+
         public int CourseID { get; set; }
+
         public int StudentID { get; set; }
+
+        [DisplayFormat(NullDisplayText = "无成绩")]
+        public Grade? Grade { get; set; }
+
         public Course Course { get; set; }
+
         public Student Student { get; set; }
     }
 }

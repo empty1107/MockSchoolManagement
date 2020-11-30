@@ -17,8 +17,11 @@ namespace MockSchoolManagement.Infrastructure
         {
             //指定实体在数据库中生成的名称
             modelBuilder.Entity<Course>().ToTable("Course", "School");
-            modelBuilder.Entity<StudentCourse>().ToTable("StudentCourse");
-            modelBuilder.Entity<Student>().ToTable("Student");
+            modelBuilder.Entity<StudentCourse>().ToTable("StudentCourse", "School");
+            modelBuilder.Entity<Student>().ToTable("Student", "School");
+            //联合主键
+            modelBuilder.Entity<CourseAssignment>().HasKey(c => new { c.CourseID, c.TeacherID });
+
         }
     }
 }

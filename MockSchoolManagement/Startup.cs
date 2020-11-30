@@ -20,6 +20,7 @@ using MockSchoolManagement.Infrastructure.Repositories;
 using MockSchoolManagement.Application.Students;
 using MockSchoolManagement.Infrastructure.Data;
 using MockSchoolManagement.Application.Courses;
+using NetCore.AutoRegisterDi;
 
 namespace MockSchoolManagement
 {
@@ -64,10 +65,15 @@ namespace MockSchoolManagement
             services.AddScoped<IStudentRepository, SQLStudentRepository>();
             //注入仓储接口、仓储接口实现
             services.AddTransient(typeof(IRepository<,>), typeof(RepositoryBase<,>));
+            //自动注入服务到依赖注入容器 NetCore.AutoRegisterDi
+            //RegisterAssemblyPublicNonGenericClasses 查找所有类，我们筛选可以查询所有名称以Service结尾的类。
+            //AsPublicImplementedInterfaces 用于查询每个公共接口，排除非嵌套接口，将每个接口的实现类都注入依赖注入容器中
+            services.RegisterAssemblyPublicNonGenericClasses().Where(c => c.Name.EndsWith("Service")).AsPublicImplementedInterfaces(ServiceLifetime.Scoped);
+
             //注入学生服务
-            services.AddScoped<IStudentService, StudentService>();
+            //services.AddScoped<IStudentService, StudentService>();
             //注入课程服务
-            services.AddScoped<ICourseService, CourseService>();
+            //services.AddScoped<ICourseService, CourseService>();
 
             //添加第三方登录，GitHub
             services.AddAuthentication().AddGitHub(options =>
