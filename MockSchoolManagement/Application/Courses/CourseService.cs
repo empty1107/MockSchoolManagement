@@ -30,7 +30,8 @@ namespace MockSchoolManagement.Application.Courses
                 query = query.Where(s => s.Title.Contains(input.FilterText));
             }
             query = query.OrderBy(input.Sorting).Skip((input.CurrentPage - 1) * input.MaxResultCount).Take(input.MaxResultCount);
-            var models = await query.AsNoTracking().ToListAsync();
+            //将查询结果转为List集合，加载到内存中
+            var models = await query.Include(a => a.Department).AsNoTracking().ToListAsync();
 
             var dtos = new PagedResultDto<Course>
             {

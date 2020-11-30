@@ -32,6 +32,9 @@
                     <th>
                         <a asp-action="Index" asp-route-Sorting="Credits" asp-route-CurrentPage="@Model.CurrentPage" asp-route-FilterText="@Model.FilterText">课程学分</a>
                     </th>
+                    <th>
+                        <a asp-action="Index" asp-route-Sorting="Department" asp-route-CurrentPage="@Model.CurrentPage" asp-route-FilterText="@Model.FilterText">学院</a>
+                    </th>
                     <th scope="col">操作</th>
                 </tr>
             </thead>
@@ -42,6 +45,7 @@
                         <td>@item.CourseID</td>
                         <td>@item.Title</td>
                         <td>@item.Credits</td>
+                        <td>@item.Department.Name</td>
                         <td>
                             <form method="post" asp-action="Delete" asp-route-id="@item.CourseID">
                                 <a asp-controller="Course" class="btn btn-info" asp-action="Details" asp-route-id="@item.CourseID">查看</a>
